@@ -1,0 +1,6 @@
+aiohttp>=3.8.0
+numpy>=1.24.0
+anthropic>=0.3.0
+python-dotenv>=1.0.0
+windows-curses>=2.3.0; platform_system=='Windows'
+colorama>=0.4.6

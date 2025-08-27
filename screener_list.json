@@ -1,0 +1,25 @@
+{
+  "nasdaq_100": [
+    "AAPL", "MSFT", "AMZN", "NVDA", "META", "GOOGL", "GOOG", "TSLA", "BRK.B", "AVGO",
+    "JPM", "LLY", "V", "UNH", "XOM", "WMT", "JNJ", "MA", "PG", "COST",
+    "HD", "ABBV", "MRK", "CVX", "ADBE", "PEP", "CRM", "NFLX", "TMO", "BAC",
+    "ACN", "KO", "MCD", "LIN", "CSCO", "ABT", "WFC", "ORCL", "DIS", "DHR",
+    "INTC", "AMD", "VZ", "PM", "INTU", "IBM", "CMCSA", "CAT", "COP", "NOW",
+    "TXN", "UNP", "PFE", "QCOM", "NKE", "AMGN", "RTX", "GE", "NEE", "HON",
+    "SPGI", "ELV", "T", "LOW", "BA", "ISRG", "UPS", "BMY", "MDT", "MS",
+    "SYK", "DE", "PLD", "SBUX", "BLK", "GILD", "VRTX", "LMT", "AXP", "ADP",
+    "ADI", "TJX", "CVS", "REGN", "SLB", "SCHW", "C", "TMUS", "ZTS", "CI",
+    "PANW", "MU", "MDLZ", "BSX", "BDX", "CB", "SO", "ETN", "PGR", "LRCX"
+  ],
+  "sectors": {
+    "technology": ["AAPL", "MSFT", "NVDA", "GOOGL", "META", "ADBE", "CRM", "ORCL", "CSCO", "INTC", "AMD", "QCOM", "PANW", "MU"],
+    "healthcare": ["LLY", "JNJ", "UNH", "PFE", "ABBV", "TMO", "MRK", "ABT", "CVS", "AMGN", "GILD", "BMY", "ISRG", "VRTX"],
+    "finance": ["BRK.B", "JPM", "V", "MA", "BAC", "WFC", "MS", "GS", "BLK", "SPGI", "SCHW", "AXP", "PGR", "CB"],
+    "consumer": ["AMZN", "TSLA", "HD", "WMT", "MCD", "NKE", "SBUX", "TJX", "LOW", "COST", "PG", "KO", "PEP", "MDLZ"],
+    "energy": ["XOM", "CVX", "COP", "SLB", "EOG", "PSX", "MPC", "VLO", "OXY", "HAL"],
+    "industrial": ["CAT", "UNP", "HON", "RTX", "BA", "UPS", "LMT", "DE", "GE", "ETN"]
+  },
+  "watchlist_favorites": [
+    "SPY", "QQQ", "DIA", "IWM", "VTI", "VOO", "GLD", "SLV", "USO", "TLT"
+  ]
+}
