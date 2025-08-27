@@ -12,30 +12,35 @@ A professional-grade, minimalist stock trading terminal with AI-powered analysis
 - Multi-source data fetching (Finnhub, Polygon, Alpha Vantage)
 - Intelligent caching system (4-hour TTL)
 - Live price updates with volume tracking
+- **NEW**: ASCII price charts with sparklines
 
 ### 🤖 AI-Powered Analysis
 - Claude-powered stock predictions
 - Portfolio-aware recommendations
 - Technical indicators (RSI, SMA, momentum)
 - Risk management with stop-loss suggestions
+- **NEW**: Web search integration for real-time sentiment
 
 ### 📈 Market Screener
 - Find oversold opportunities (RSI < 30)
 - Discover momentum plays
 - Detect volume breakouts
 - Screen top NASDAQ stocks automatically
+- **NEW**: Custom screening with your own criteria
 
 ### 💼 Portfolio Management
 - Track positions with real-time P&L
-- Execute buy/sell orders
-- Transaction history
+- Execute buy/sell orders with reasoning
+- Transaction history with AI insights
 - Starting capital: $100,000 (for simulations)
+- **NEW**: Performance metrics and win rate analysis
 
 ### ⚡ Professional Features
 - Background monitoring (60-second auto-updates)
 - Real-time alerts for key events
 - Data persistence (watchlist saves automatically)
 - Fast, colorful terminal UI
+- **NEW**: Visual price trends in detail view
 
 ## Quick Start
 
@@ -83,9 +88,10 @@ python simple_terminal_v2.py
 - `A` - Add stock to watchlist
 - `R` - Remove stock from watchlist
 - `U` - Update all data manually
-- `K` - Run market screener
-- `1-9` - View detailed analysis
+- `K` - Run market screener (with custom criteria!)
+- `1-9` - View detailed analysis with price charts
 - `P` - Portfolio summary
+- `V` - Performance review (win rate, best/worst trades)
 - `B` - Buy stocks
 - `S` - Sell stocks
 - `Q` - Quit
@@ -94,6 +100,7 @@ python simple_terminal_v2.py
 1. **Oversold Stocks** - Find stocks with RSI < 30
 2. **Momentum Plays** - Stocks in uptrend with high momentum
 3. **Volume Breakouts** - Unusual volume with positive movement
+4. **Custom Criteria** - Define your own RSI range, trend, momentum, and signals
 
 ### Example Workflow
 1. Press `K` to run the screener
