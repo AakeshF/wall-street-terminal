@@ -44,11 +44,20 @@ A professional-grade, minimalist stock trading terminal with AI-powered analysis
 
 ## Quick Start
 
-### Prerequisites
+### 🚀 Easiest Installation (Recommended)
+
+1. Go to the [latest releases page](https://github.com/AakeshF/wall-street-terminal/releases)
+2. Download `WallStreetTerminal.exe` for Windows
+3. Double-click to run - that's it!
+4. The app will create a `.env` file for you to add your free API keys
+
+### 💻 Developer Installation
+
+#### Prerequisites
 - Python 3.8+
 - Windows Terminal or PowerShell (for best experience)
 
-### Installation
+#### Installation
 
 1. Clone the repository:
 ```bash

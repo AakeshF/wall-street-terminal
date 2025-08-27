@@ -73,3 +73,13 @@ coverage.xml
 
 # Legacy code (already archived)
 _legacy_code/
+
+# PyInstaller
+build/
+dist/
+*.spec
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
