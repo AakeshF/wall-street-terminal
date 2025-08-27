@@ -25,6 +25,7 @@ from data_fetcher import DataFetcher, MarketData
 from ai_analyzer import StockAnalyzer
 from portfolio_manager import PortfolioManager
 from market_screener import MarketScreener
+from visualizer import Visualizer
 
 # Color scheme for that 80s terminal feel
 class Colors:
@@ -132,7 +133,7 @@ class ProfessionalTerminal:
         time_since_update = time.time() - self.last_update
         print(f"\n{Colors.INFO}{'-' * 80}{Colors.RESET}")
         print(f"{Colors.INFO}Last update: {int(time_since_update)}s ago | Auto-update: {'ON' if self.monitoring_task else 'OFF'}{Colors.RESET}")
-        print(f"{Colors.BRIGHT}[A]DD  [R]EMOVE  [U]PDATE  [K]SCREEN  [1-9]DETAIL  [P]ORTFOLIO  [B]UY  [S]ELL  [Q]UIT{Colors.RESET}")
+        print(f"{Colors.BRIGHT}[A]DD  [R]EMOVE  [U]PDATE  [K]SCREEN  [1-9]DETAIL  [P]ORTFOLIO  [V]PERFORMANCE  [B]UY  [S]ELL  [Q]UIT{Colors.RESET}")
         
     async def fetch_historical_data(self, symbol: str) -> List[float]:
         """Fetch real historical data"""
@@ -289,6 +290,18 @@ class ProfessionalTerminal:
         print(f"Day Range: ${data.low:.2f} - ${data.high:.2f}")
         print(f"Volume: {data.volume:,}")
         
+        # Add price chart
+        prices = self.fetcher.cache.get_historical_prices(symbol)
+        if prices and len(prices) >= 10:
+            print(f"\n{Colors.BRIGHT}PRICE TREND (Last {min(50, len(prices))} days){Colors.RESET}")
+            sparkline = Visualizer.generate_sparkline(prices, width=50)
+            print(f"{Colors.INFO}{sparkline}{Colors.RESET}")
+            
+            # Show min/max indicators
+            min_price = min(prices[-50:])
+            max_price = max(prices[-50:])
+            print(f"Range: ${min_price:.2f} ━━━━━ ${max_price:.2f}")
+        
         # AI Analysis
         print(f"\n{Colors.BRIGHT}AI ANALYSIS{Colors.RESET}")
         signal = pred.get('signal', 'CALCULATING...')
@@ -411,6 +424,8 @@ class ProfessionalTerminal:
                 self.execute_sell()
             elif command == 'K':
                 loop.run_until_complete(self.run_screener())
+            elif command == 'V':
+                self.view_performance()
             
     def view_portfolio(self):
         """Display portfolio view"""
@@ -473,9 +488,14 @@ class ProfessionalTerminal:
             
             confirm = input(f"\n{Colors.WARNING}Confirm order? (Y/N): {Colors.RESET}").upper()
             if confirm == 'Y':
-                if self.portfolio.buy_stock(symbol, shares, data.price):
+                # Get AI reasoning for the trade
+                pred = self.predictions.get(symbol, {})
+                reasoning = f"{pred.get('signal', 'N/A')}: {pred.get('reason', 'Manual trade')}"
+                
+                if self.portfolio.buy_stock(symbol, shares, data.price, reasoning):
                     print(f"{Colors.PROFIT}ORDER EXECUTED!{Colors.RESET}")
                     print(f"Bought {shares} shares of {symbol} @ ${data.price:.2f}")
+                    print(f"Reasoning: {reasoning}")
                 else:
                     print(f"{Colors.LOSS}ORDER FAILED! Insufficient funds.{Colors.RESET}")
             else:
@@ -536,9 +556,14 @@ class ProfessionalTerminal:
                 
                 confirm = input(f"\n{Colors.WARNING}Confirm order? (Y/N): {Colors.RESET}").upper()
                 if confirm == 'Y':
-                    if self.portfolio.sell_stock(symbol, shares, data.price):
+                    # Get reasoning
+                    pred = self.predictions.get(symbol, {})
+                    reasoning = f"P&L: {pnl_color}${pnl:,.2f}{Colors.RESET}, {pred.get('signal', 'Manual')}"
+                    
+                    if self.portfolio.sell_stock(symbol, shares, data.price, reasoning):
                         print(f"{Colors.PROFIT}ORDER EXECUTED!{Colors.RESET}")
                         print(f"Sold {shares} shares of {symbol} @ ${data.price:.2f}")
+                        print(f"Reasoning: {reasoning}")
                     else:
                         print(f"{Colors.LOSS}ORDER FAILED!{Colors.RESET}")
                 else:
@@ -580,6 +605,47 @@ class ProfessionalTerminal:
             elif choice == '3':
                 results = await self.screener.screen_breakout()
                 title = "VOLUME BREAKOUTS"
+            elif choice == '4':
+                # Custom screening
+                print(f"\n{Colors.BRIGHT}CUSTOM SCREENING CRITERIA{Colors.RESET}")
+                print("Press Enter to skip any criteria\n")
+                
+                try:
+                    # Get user inputs
+                    min_rsi_input = input(f"{Colors.INFO}Minimum RSI (0-100): {Colors.RESET}").strip()
+                    min_rsi = float(min_rsi_input) if min_rsi_input else 0
+                    
+                    max_rsi_input = input(f"{Colors.INFO}Maximum RSI (0-100): {Colors.RESET}").strip()
+                    max_rsi = float(max_rsi_input) if max_rsi_input else 100
+                    
+                    trend_input = input(f"{Colors.INFO}Trend (UP/DOWN/ANY): {Colors.RESET}").strip().upper()
+                    trend_filter = trend_input if trend_input in ['UP', 'DOWN'] else None
+                    
+                    min_momentum_input = input(f"{Colors.INFO}Minimum Momentum %: {Colors.RESET}").strip()
+                    min_momentum = float(min_momentum_input) if min_momentum_input else -100
+                    
+                    signal_input = input(f"{Colors.INFO}Signal (BUY/SELL/HOLD/ANY): {Colors.RESET}").strip().upper()
+                    signal_filter = signal_input if signal_input in ['BUY', 'SELL', 'HOLD'] else None
+                    
+                    # Get symbols to screen
+                    print(f"\n{Colors.INFO}Scanning top 50 NASDAQ stocks...{Colors.RESET}")
+                    symbols = self.screener.universe['nasdaq_100'][:50]
+                    
+                    results = await self.screener.screen_custom(
+                        symbols=symbols,
+                        min_rsi=min_rsi,
+                        max_rsi=max_rsi,
+                        min_momentum=min_momentum,
+                        trend_filter=trend_filter,
+                        signal_filter=signal_filter
+                    )
+                    
+                    title = f"CUSTOM SCREEN (RSI:{min_rsi}-{max_rsi}, Trend:{trend_filter or 'ANY'})"
+                    
+                except ValueError as e:
+                    print(f"{Colors.WARNING}Invalid input: {e}{Colors.RESET}")
+                    time.sleep(1)
+                    return
             else:
                 print(f"{Colors.WARNING}Invalid choice{Colors.RESET}")
                 time.sleep(1)
@@ -620,6 +686,61 @@ class ProfessionalTerminal:
                     
         except Exception as e:
             print(f"{Colors.LOSS}Error during screening: {str(e)}{Colors.RESET}")
+            
+        input(f"\n{Colors.INFO}Press Enter to continue...{Colors.RESET}")
+        
+    def view_performance(self):
+        """Display performance review"""
+        self.clear_screen()
+        print(f"{Colors.HEADER}{Colors.BRIGHT}{'=' * 80}{Colors.RESET}")
+        print(f"{Colors.HEADER}{Colors.BRIGHT}  PERFORMANCE REVIEW{Colors.RESET}")
+        print(f"{Colors.HEADER}{Colors.BRIGHT}{'=' * 80}{Colors.RESET}")
+        
+        metrics = self.portfolio.get_performance_metrics()
+        
+        # Overall stats
+        print(f"\n{Colors.BRIGHT}TRADING STATISTICS{Colors.RESET}")
+        print(f"Total Completed Trades: {metrics['total_trades']}")
+        
+        if metrics['total_trades'] > 0:
+            win_color = Colors.PROFIT if metrics['win_rate'] >= 50 else Colors.LOSS
+            print(f"Win Rate: {win_color}{metrics['win_rate']:.1f}%{Colors.RESET} ({metrics['winning_trades']} wins, {metrics['losing_trades']} losses)")
+            
+            pnl_color = Colors.PROFIT if metrics['total_profit'] >= 0 else Colors.LOSS
+            print(f"Total P&L: {pnl_color}${metrics['total_profit']:,.2f}{Colors.RESET}")
+            print(f"Average P&L per Trade: {pnl_color}${metrics['avg_profit']:,.2f}{Colors.RESET}")
+            
+            # Best/Worst trades
+            if metrics['best_trade']:
+                print(f"\n{Colors.BRIGHT}BEST TRADE{Colors.RESET}")
+                best = metrics['best_trade']
+                print(f"{best['symbol']}: {Colors.PROFIT}+${best['profit']:,.2f} ({best['profit_pct']:+.1f}%){Colors.RESET}")
+                print(f"Date: {best['sell_date'][:10]}")
+                if best['reasoning']:
+                    print(f"Reasoning: {best['reasoning'][:60]}")
+                    
+            if metrics['worst_trade'] and metrics['worst_trade']['profit'] < 0:
+                print(f"\n{Colors.BRIGHT}WORST TRADE{Colors.RESET}")
+                worst = metrics['worst_trade']
+                print(f"{worst['symbol']}: {Colors.LOSS}${worst['profit']:,.2f} ({worst['profit_pct']:+.1f}%){Colors.RESET}")
+                print(f"Date: {worst['sell_date'][:10]}")
+                if worst['reasoning']:
+                    print(f"Reasoning: {worst['reasoning'][:60]}")
+                    
+            # Recent trades
+            if metrics['recent_trades']:
+                print(f"\n{Colors.BRIGHT}RECENT COMPLETED TRADES{Colors.RESET}")
+                print(f"{'SYMBOL':<8} {'P&L':<12} {'%':<8} {'DATE':<12} {'REASONING':<40}")
+                print(f"{Colors.INFO}{'-' * 80}{Colors.RESET}")
+                
+                for trade in reversed(metrics['recent_trades']):
+                    pnl_color = Colors.PROFIT if trade['profit'] >= 0 else Colors.LOSS
+                    print(f"{trade['symbol']:<8} {pnl_color}${trade['profit']:<11,.2f}{Colors.RESET} "
+                          f"{pnl_color}{trade['profit_pct']:+7.1f}%{Colors.RESET} "
+                          f"{trade['sell_date'][:10]:<12} {trade['reasoning'][:40]}")
+                          
+        else:
+            print(f"\n{Colors.INFO}No completed trades yet. Buy and sell stocks to see performance metrics.{Colors.RESET}")
             
         input(f"\n{Colors.INFO}Press Enter to continue...{Colors.RESET}")
                 

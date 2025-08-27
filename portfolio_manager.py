@@ -24,6 +24,7 @@ class Transaction:
     shares: int
     price: float
     date: str
+    reasoning: str = ""  # AI reasoning for the trade
     
 class PortfolioManager:
     def __init__(self, initial_cash: float = 100000.0):
@@ -66,7 +67,7 @@ class PortfolioManager:
         except Exception as e:
             print(f"Error saving portfolio: {e}")
             
-    def buy_stock(self, symbol: str, shares: int, price: float) -> bool:
+    def buy_stock(self, symbol: str, shares: int, price: float, reasoning: str = "") -> bool:
         """Execute a buy order"""
         total_cost = shares * price
         
@@ -96,19 +97,20 @@ class PortfolioManager:
                 purchase_date=datetime.now().strftime('%Y-%m-%d')
             )
             
-        # Record transaction
+        # Record transaction with reasoning
         self.transactions.append(Transaction(
             symbol=symbol,
             action='BUY',
             shares=shares,
             price=price,
-            date=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            reasoning=reasoning
         ))
         
         self._save_portfolio()
         return True
         
-    def sell_stock(self, symbol: str, shares: int, price: float) -> bool:
+    def sell_stock(self, symbol: str, shares: int, price: float, reasoning: str = "") -> bool:
         """Execute a sell order"""
         if symbol not in self.positions:
             return False
@@ -127,13 +129,14 @@ class PortfolioManager:
         else:
             pos.shares -= shares
             
-        # Record transaction
+        # Record transaction with reasoning
         self.transactions.append(Transaction(
             symbol=symbol,
             action='SELL',
             shares=shares,
             price=price,
-            date=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            date=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            reasoning=reasoning
         ))
         
         self._save_portfolio()
@@ -192,3 +195,79 @@ class PortfolioManager:
             'positions': positions_data,
             'transaction_count': len(self.transactions)
         }
+        
+    def get_performance_metrics(self) -> Dict:
+        """Calculate detailed performance metrics"""
+        completed_trades = []
+        
+        # Track buy/sell pairs
+        for trans in self.transactions:
+            if trans.action == 'SELL':
+                # Find corresponding buy transactions
+                symbol = trans.symbol
+                sell_shares = trans.shares
+                sell_price = trans.price
+                
+                # Look for earlier buys of this symbol
+                buy_shares = 0
+                buy_value = 0
+                
+                for earlier in self.transactions:
+                    if earlier.date >= trans.date:
+                        break
+                    if earlier.symbol == symbol and earlier.action == 'BUY':
+                        shares_to_match = min(earlier.shares, sell_shares - buy_shares)
+                        buy_value += shares_to_match * earlier.price
+                        buy_shares += shares_to_match
+                        
+                        if buy_shares >= sell_shares:
+                            break
+                            
+                if buy_shares > 0:
+                    avg_buy_price = buy_value / buy_shares
+                    profit = (sell_price - avg_buy_price) * sell_shares
+                    profit_pct = ((sell_price - avg_buy_price) / avg_buy_price) * 100
+                    
+                    completed_trades.append({
+                        'symbol': symbol,
+                        'profit': profit,
+                        'profit_pct': profit_pct,
+                        'sell_date': trans.date,
+                        'reasoning': trans.reasoning
+                    })
+                    
+        # Calculate metrics
+        if completed_trades:
+            winning_trades = [t for t in completed_trades if t['profit'] > 0]
+            losing_trades = [t for t in completed_trades if t['profit'] < 0]
+            
+            total_profit = sum(t['profit'] for t in completed_trades)
+            
+            best_trade = max(completed_trades, key=lambda x: x['profit_pct'])
+            worst_trade = min(completed_trades, key=lambda x: x['profit_pct'])
+            
+            metrics = {
+                'total_trades': len(completed_trades),
+                'winning_trades': len(winning_trades),
+                'losing_trades': len(losing_trades),
+                'win_rate': (len(winning_trades) / len(completed_trades) * 100) if completed_trades else 0,
+                'total_profit': total_profit,
+                'avg_profit': total_profit / len(completed_trades) if completed_trades else 0,
+                'best_trade': best_trade,
+                'worst_trade': worst_trade,
+                'recent_trades': completed_trades[-5:]  # Last 5 trades
+            }
+        else:
+            metrics = {
+                'total_trades': 0,
+                'winning_trades': 0,
+                'losing_trades': 0,
+                'win_rate': 0,
+                'total_profit': 0,
+                'avg_profit': 0,
+                'best_trade': None,
+                'worst_trade': None,
+                'recent_trades': []
+            }
+            
+        return metrics

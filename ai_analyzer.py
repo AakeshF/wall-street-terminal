@@ -10,6 +10,8 @@ import numpy as np
 from datetime import datetime, timedelta
 import anthropic
 import os
+import aiohttp
+import json
 
 class StockAnalyzer:
     """Lean AI-powered analysis"""
@@ -17,6 +19,8 @@ class StockAnalyzer:
     def __init__(self):
         self.claude_key = os.getenv('ANTHROPIC_API_KEY', '')
         self.client = anthropic.Anthropic(api_key=self.claude_key) if self.claude_key else None
+        self.tavily_key = os.getenv('TAVILY_API_KEY', '')
+        self.web_search_enabled = bool(self.tavily_key)
         
     def quick_technicals(self, prices: List[float]) -> Dict[str, float]:
         """Fast technical indicators. No libraries needed."""
@@ -48,6 +52,51 @@ class StockAnalyzer:
             'trend': 'UP' if sma_5 > sma_20 else 'DOWN'
         }
         
+    async def _fetch_web_context(self, symbol: str) -> str:
+        """Fetch real-time web context for a stock"""
+        if not self.web_search_enabled:
+            return ""
+            
+        try:
+            query = f"latest news analyst sentiment {symbol} stock price target"
+            
+            async with aiohttp.ClientSession() as session:
+                url = "https://api.tavily.com/search"
+                headers = {"Content-Type": "application/json"}
+                data = {
+                    "api_key": self.tavily_key,
+                    "query": query,
+                    "max_results": 3,
+                    "search_depth": "basic",
+                    "include_answer": True
+                }
+                
+                async with session.post(url, headers=headers, json=data) as resp:
+                    if resp.status == 200:
+                        result = await resp.json()
+                        
+                        # Build concise context
+                        context_parts = []
+                        
+                        # Add direct answer if available
+                        if result.get('answer'):
+                            context_parts.append(f"Summary: {result['answer'][:150]}")
+                            
+                        # Add top results
+                        for r in result.get('results', [])[:2]:
+                            title = r.get('title', '')
+                            snippet = r.get('snippet', '')[:100]
+                            if title and snippet:
+                                context_parts.append(f"- {title}: {snippet}")
+                                
+                        return "\n".join(context_parts) if context_parts else ""
+                        
+        except Exception as e:
+            # Fail silently - web search is optional enhancement
+            return ""
+            
+        return ""
+        
     async def ai_predict(self, symbol: str, data: Dict, news: List[Dict], portfolio_summary: Optional[Dict] = None) -> Dict[str, any]:
         """AI-powered prediction. Direct to the point."""
         if not self.client:
@@ -71,10 +120,17 @@ NEWS: {len(news)} articles today
                 context += f", owns {pos['shares']} shares @ ${pos['avg_price']:.2f}"
             context += f", {len(portfolio_summary.get('positions', {}))} positions"
         
+        # Fetch web context for deeper insights
+        web_context = await self._fetch_web_context(symbol)
+        if web_context:
+            context += f"\n\nWEB INSIGHTS:\n{web_context}"
+        
         try:
             prompt = "Quick stock analysis. Be extremely concise.\n" + context
             if portfolio_summary:
                 prompt += "\nConsider portfolio diversification."
+            if web_context:
+                prompt += "\nConsider recent news sentiment."
             prompt += "\nPrediction (BUY/HOLD/SELL) with 1-line reason:"
             
             response = await asyncio.to_thread(
