@@ -1,4 +1,4 @@
-# Wall Street Terminal v2.0 🚀
+# Wall Street Terminal v4.0 🚀
 
 A professional-grade, minimalist stock trading terminal with AI-powered analysis, real-time market screening, and portfolio management. Built for speed, accuracy, and that authentic 80s Wall Street aesthetic.
 
@@ -42,12 +42,21 @@ A professional-grade, minimalist stock trading terminal with AI-powered analysis
 - Fast, colorful terminal UI
 - **NEW**: Visual price trends in detail view
 
+### 🎯 v4.0 - Standalone Terminal App
+- Modern TUI with Textual framework
+- Interactive DataTable for watchlist
+- Mouse support and clickable elements
+- Multiple screens (Detail, Portfolio, Screener)
+- Runs as its own application window
+- Preserves the classic 80s Wall Street aesthetic
+
 ## Quick Start
 
 ### 🚀 Easiest Installation (Recommended)
 
 1. Go to the [latest releases page](https://github.com/AakeshF/wall-street-terminal/releases)
-2. Download `WallStreetTerminal.exe` for Windows
+2. Download `WallStreetTerminal_v4.exe` for Windows (Standalone Textual App)
+   - Or download `WallStreetTerminal.exe` for the classic terminal version
 3. Double-click to run - that's it!
 4. The app will create a `.env` file for you to add your free API keys
 
@@ -86,6 +95,10 @@ ANTHROPIC_API_KEY=your_claude_key
 
 4. Run the terminal:
 ```bash
+# For v4.0 Standalone Textual App (NEW!)
+python main_app.py
+
+# For v3.0 Classic Terminal
 python simple_terminal_v2.py
 # or
 .\run.bat
