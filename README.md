@@ -50,15 +50,26 @@ A professional-grade, minimalist stock trading terminal with AI-powered analysis
 - Runs as its own application window
 - Preserves the classic 80s Wall Street aesthetic
 
+### 🖥️ NEW: GUI Desktop Application
+- Full graphical interface with windows and menus
+- Real-time stock data grid with sortable columns
+- Interactive portfolio management with P&L tracking
+- Pop-up dialogs for trading (Buy/Sell orders)
+- Tabbed interface for easy navigation
+- Dark theme optimized for trading
+- No console window - runs as a true desktop app
+
 ## Quick Start
 
 ### 🚀 Easiest Installation (Recommended)
 
 1. Go to the [latest releases page](https://github.com/AakeshF/wall-street-terminal/releases)
-2. Download `WallStreetTerminal_v4.exe` for Windows (Standalone Textual App)
-   - Or download `WallStreetTerminal.exe` for the classic terminal version
+2. Choose your preferred version:
+   - `WallStreetGUI.exe` - NEW! Full GUI desktop application
+   - `WallStreetTerminal_v4.exe` - Textual terminal app (keyboard + mouse)
+   - `WallStreetTerminal.exe` - Classic v3 terminal (keyboard only)
 3. Double-click to run - that's it!
-4. The app will create a `.env` file for you to add your free API keys
+4. Copy `.env.example` to `.env` and add your free API keys
 
 ### 💻 Developer Installation
 
@@ -93,12 +104,15 @@ ALPHA_VANTAGE_KEY=your_alphavantage_key
 ANTHROPIC_API_KEY=your_claude_key
 ```
 
-4. Run the terminal:
+4. Run your preferred version:
 ```bash
-# For v4.0 Standalone Textual App (NEW!)
+# GUI Desktop Application (NEW!)
+python gui_app.py
+
+# Textual Terminal App (v4.0)
 python main_app.py
 
-# For v3.0 Classic Terminal
+# Classic Terminal (v3.0)
 python simple_terminal_v2.py
 # or
 .\run.bat
